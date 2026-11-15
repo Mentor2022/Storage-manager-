@@ -1,7 +1,9 @@
-name: Build APK
+name: Build and release APK
 on:
   push:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,10 +18,20 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-      - name: Build debug APK
+      - name: Restore signing key
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.jks"
+      - name: Build signed APK
         working-directory: extracted/StorageManager
-        run: gradle assembleDebug --no-daemon
-      - uses: actions/upload-artifact@v4
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease --no-daemon
+      - name: Name the APK
+        run: cp extracted/StorageManager/app/build/outputs/apk/release/app-release.apk StorageManager.apk
+      - uses: softprops/action-gh-release@v2
         with:
-          name: storage-manager-apk
-          path: extracted/StorageManager/app/build/outputs/apk/debug/app-debug.apk
+          tag_name: v1.${{ github.run_number }}
+          name: Storage Manager 1.${{ github.run_number }}
+          files: StorageManager.apk
