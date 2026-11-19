@@ -65,7 +65,7 @@ jobs:
             (((.bin.days // 7) | type == "number" and . >= 1 and . <= 60))
           ' >/dev/null || { echo "bad config_json"; exit 1; }
           # keep only the keys we know, so nothing else can reach the app
-          printf '%s' "$CONFIG_JSON" | jq -c '{v: 1, features: ((.features // {}) | with_entries(select(.key | IN("large","duplicates","junk","whatsapp","downloads","screenshots","safety","email","apps","bin","similar","smart")))), reminder: {on: (.reminder.on // true), below: ((.reminder.below // 10) | floor)}, bin: {days: ((.bin.days // 7) | floor)}}' > "$RUNNER_TEMP/config.json"
+          printf '%s' "$CONFIG_JSON" | jq -c '{v: 1, features: ((.features // {}) | with_entries(select(.key | IN("large","duplicates","junk","whatsapp","downloads","screenshots","safety","email","apps","bin","similar","smart","compress","report","rules")))), reminder: {on: (.reminder.on // true), below: ((.reminder.below // 10) | floor)}, bin: {days: ((.bin.days // 7) | floor)}}' > "$RUNNER_TEMP/config.json"
           cat "$RUNNER_TEMP/config.json"
           printf '%s' "$RELEASE_NOTES" | head -c 2000 > "$RUNNER_TEMP/notes.txt"
 
